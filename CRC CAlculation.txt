@@ -1,0 +1,53 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+// --- CRC-8: Polynomial = x^8 + x^2 + x + 1 (0x07) ---
+uint8_t crc8(const uint8_t *data, size_t length) {
+    uint8_t crc = 0x00;
+    while (length--) {
+        crc ^= *data++;
+        for (uint8_t i = 0; i < 8; i++)
+            crc = (crc & 0x80) ? (crc << 1) ^ 0x07 : (crc << 1);
+    }
+    return crc;
+}
+
+// --- CRC-16 (IBM): Polynomial = x^16 + x^15 + x^2 + 1 (0x8005 or 0xA001 reversed) ---
+uint16_t crc16_ibm(const uint8_t *data, size_t length) {
+    uint16_t crc = 0xFFFF;
+    while (length--) {
+        crc ^= *data++;
+        for (uint8_t i = 0; i < 8; i++)
+            crc = (crc & 1) ? (crc >> 1) ^ 0xA001 : (crc >> 1);
+    }
+    return crc;
+}
+
+// --- CRC-32: Polynomial = 0xEDB88320 ---
+uint32_t crc32(const uint8_t *data, size_t length) {
+    uint32_t crc = 0xFFFFFFFF;
+    while (length--) {
+        crc ^= *data++;
+        for (uint8_t i = 0; i < 8; i++)
+            crc = (crc & 1) ? (crc >> 1) ^ 0xEDB88320 : (crc >> 1);
+    }
+    return ~crc;
+}
+
+int main() {
+    const char *input = "Md Hasemi Rafsan Jani Shohan";
+    size_t len = strlen(input);
+    const uint8_t *data = (const uint8_t *)input;
+
+    uint8_t  crc8_val = crc8(data, len);
+    uint16_t crc16_val = crc16_ibm(data, len);
+    uint32_t crc32_val = crc32(data, len);
+
+    printf("Input string: %s\n", input);
+    printf("CRC-8   : 0x%02X\n", crc8_val);
+    printf("CRC-16  : 0x%04X\n", crc16_val);
+    printf("CRC-32  : 0x%08X\n", crc32_val);
+
+    return 0;
+}
